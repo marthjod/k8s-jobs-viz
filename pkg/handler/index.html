@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+        <script type="text/javascript">
+
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    var j = JSON.parse(xhr.responseText);
+
+                    //window.console.log(j.length);
+
+                    for (var i = 0; i < j.length; i++) {
+                        j[i].start = j[i].start_time;
+                        j[i].end = j[i].completion_time;
+                        j[i].content = j[i].name;
+
+                        if (j[i].state === "Failed") {
+                            j[i].style = "color: red;";
+                        } else if (j[i].state === "Running") {
+                            j[i].style = "color: blue;";
+                        } else if (j[i].state === "Succeeded") {
+                            j[i].style = "color: green;";
+                        }
+                    }
+
+                    window.console.log(j)
+
+                    var container = document.getElementById("visualization");
+                    var options = {
+                        min: new Date(2020, 0, 8),
+                        max: new Date(2020, 0, 20)
+                    };
+
+                    var timeline = new vis.Timeline(container, j, options);
+                }
+            };
+            xhr.open("GET", "/", true);
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.send();
+        </script>
+    <head>
+    <body>
+        <div id="visualization">
+        </div>
+    </body>
+</html>

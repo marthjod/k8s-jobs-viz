@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/marthjod/k8s-jobs-viz/cmd/config"
-	"github.com/marthjod/k8s-jobs-viz/pkg/job"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/marthjod/k8s-jobs-viz/pkg/handler"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
@@ -42,38 +40,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	k8sJobs, err := clientset.BatchV1().Jobs(cfg.Namespace).List(metav1.ListOptions{})
+	hdlr, err := handler.New(clientset, cfg.Namespace, cfg.IndexHTML)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var jobs = []*job.Job{}
-	for _, k8sJob := range k8sJobs.Items {
-		log.Printf("%+v", k8sJob.Status)
-
-		j := &job.Job{
-			Name:           k8sJob.Name,
-			StartTime:      k8sJob.Status.StartTime,
-			CompletionTime: k8sJob.Status.CompletionTime,
-		}
-		if k8sJob.Status.Succeeded > 0 {
-			j.State = job.Succeeded
-		}
-		if k8sJob.Status.Failed > 0 {
-			j.State = job.Failed
-		}
-		if k8sJob.Status.Active > 0 {
-			j.State = job.Running
-		}
-
-		jobs = append(jobs, j)
-	}
-
-	b, err := json.Marshal(jobs)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("%s", b)
+	http.Handle("/", hdlr)
+	log.Printf("listening on %s\n", cfg.ListenAddress)
+	log.Fatal(http.ListenAndServe(cfg.ListenAddress, nil))
 
 }

@@ -11,6 +11,7 @@ type Config struct {
 	ListenAddress string `arg:"--listen,env:LISTEN_ADDRESS"`
 	KubeConfig    string `arg:"--kubeconfig,env:KUBECONFIG"`
 	Namespace     string `arg:"--namespace,env:NAMESPACE"`
+	IndexHTML     string `arg:"--index-html,env:INDEX_HTML"`
 }
 
 // New creates a new Config by parsing the environment and flags.
